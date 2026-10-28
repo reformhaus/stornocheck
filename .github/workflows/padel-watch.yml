@@ -32,7 +32,7 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           TEST_PUSH: ${{ inputs.test_push }}
-          WEEKENDS_AHEAD: "2"
+          WEEKENDS_AHEAD: "3"
           DURATIONS: "90"
           EARLIEST: "00:00"
           LATEST: "23:59"
