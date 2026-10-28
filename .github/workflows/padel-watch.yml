@@ -1,0 +1,46 @@
+name: Padel Storno-Wächter
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # alle 5 Min. (GitHub startet oft etwas verzögert)
+  workflow_dispatch:
+    inputs:
+      test_push:
+        description: "Test-Push senden"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: padel-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verfügbarkeit prüfen
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TEST_PUSH: ${{ inputs.test_push }}
+          WEEKENDS_AHEAD: "2"
+          DURATIONS: "90"
+          EARLIEST: "00:00"
+          LATEST: "23:59"
+        run: python padel_watch.py
+
+      - name: Stand speichern
+        run: |
+          git config user.name "padel-bot"
+          git config user.email "padel-bot@users.noreply.github.com"
+          git add state.json
+          git diff --cached --quiet || (git commit -m "state update" -q && git push -q)
